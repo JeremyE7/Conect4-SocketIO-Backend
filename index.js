@@ -2,6 +2,8 @@ import express from 'express'
 import http from 'http'
 import { Server as SocketServer } from 'socket.io'
 import { createNewGame } from './creating-game.js'
+import dotenv from 'dotenv'
+dotenv.config()
 
 const games = []
 
@@ -56,6 +58,8 @@ io.on('connection', (socket) => {
     }
     if (game.board.every((row) => row.every((cell) => cell !== 0))) {
       console.log('Empate')
+      const index = games.findIndex((game) => game.id === gameId)
+      games.splice(index, 1)
       io.to(game.id).emit('tie')
       return
     }
@@ -74,6 +78,8 @@ io.on('connection', (socket) => {
 }
 )
 
-server.listen(4000, () => {
-  console.log('Server listening on http://localhost:4000')
+const port = process.env.PORT || 4000
+
+server.listen(port, () => {
+  console.log('Server listening on http://localhost:' + port)
 })
