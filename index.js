@@ -48,18 +48,31 @@ io.on('connection', (socket) => {
     const game = games.find((game) => game.id === gameId)
     const winner = game.checkWinner({ board: game.board })
     console.log(winner)
+    // Eliminar juego de la lista de juegos
+    if (winner) {
+      const index = games.findIndex((game) => game.id === gameId)
+      games.splice(index, 1)
+      console.log('Juego eliminado')
+    }
+    if (game.board.every((row) => row.every((cell) => cell !== 0))) {
+      console.log('Empate')
+      io.to(game.id).emit('tie')
+      return
+    }
     io.to(game.id).emit('winner-checked', winner)
   })
 
   socket.on('disconnect', () => {
     console.log('Client disconnected')
+    // Eliminar jugador de la lista de jugadores
+    const index = games.findIndex((game) => game.players.some((player) => player.id_player === socket.id))
+    if (index > -1) {
+      io.to(games[index].id).emit('player-disconnected')
+      games.splice(index, 1)
+    }
   })
 }
 )
-
-io.on('disconnect', () => {
-  console.log('Client disconnected')
-})
 
 server.listen(4000, () => {
   console.log('Server listening on http://localhost:4000')
